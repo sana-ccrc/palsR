@@ -188,3 +188,18 @@ uuid = function(uppercase=FALSE) {
 	  paste0(sample(hex_digits, 12, replace=TRUE), collapse=''),
 	  sep='-')
 }
+
+
+Prepare4DMatrix = function(data){
+  adata = array(NA,dim=c(data$obs$grid$lonlen,data$obs$grid$latlen,data$obs$timing$tsteps,(3+data$bench$howmany)))
+  adata[,,,1] = data$obs$data            # obs
+  adata[,,,2] = data$obs$data_unc        # obs, std
+  adata[,,,3] = data$model$data          # model
+  # Add benchmark data, if any:
+  if(data$bench$exist){                  # bench
+    for(b in 1: (data$bench$howmany) ){
+      adata[,,,(b+3)] = data$bench[[data$bench$index[b]]]$data
+    }
+  }   
+  return(adata)
+}

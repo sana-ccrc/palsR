@@ -22,6 +22,12 @@ TableModelColour = function() {
 TableBenchmarkColour = function() {
 	'gray93'	
 }
+
+ExtremeValueColour = function() {
+  # Extreme values (special colour for values outside of plotting range)
+  'gray60' #deeppink'
+}
+
 BenchmarkColours = function(bench,plotobs=TRUE){
 	# Returns vector of colours for lines in a plot.
 	# If no obs line in the plot (e.g. error plot), first index will be model, else obs
@@ -45,7 +51,7 @@ BenchmarkColours = function(bench,plotobs=TRUE){
 }
 ChooseColours = function(range,variablename,plottype,diffthreshold=NULL){
 	# Returns a colour range for gridded plots
-	library(colorRamps)
+	library(colorRamps) # builds color maps
 	
 	# Full / most range:
 	red2blue = colorRampPalette(c('red','orange','yellow','green','blue'))
@@ -66,9 +72,9 @@ ChooseColours = function(range,variablename,plottype,diffthreshold=NULL){
 	red2yellow = colorRampPalette(c('red','yellow'))
 	green2blue = colorRampPalette(c('green','blue'))
 	blue2green = colorRampPalette(c('blue','green'))
-	
+  
 	coolvars = c('Qle','Evap')
-	warmvars = c('Tair','Qh','Rnet','SWdown','SWnet')
+	warmvars = c('Tair','Qh','Rnet','SWdown','SWnet','NEE','VISalbedo','NIRalbedo')
 	colourres = 36 # approximately how many colours in a plot (will control size of white space if diff plot)
 	
 	# If no difference threshold has been specified, use 5%:

@@ -4,6 +4,7 @@
 #
 # Gab Abramowitz, UNSW, 2015 (palshelp at gmail dot com)
 
+
 DistributeGriddedAnalyses = function(Analysis,vars,obs,model,bench,region,cl){
 	# Each call to this function will generate a single plot and a list of metrics associate with it
 	
@@ -17,7 +18,7 @@ DistributeGriddedAnalyses = function(Analysis,vars,obs,model,bench,region,cl){
 	errcheck = CanAnalysisProceed(obs, model)
 	if(errcheck$err){
 		result = list(type=outfiletype,filename=paste(getwd(),outfile,sep = "/"),mimetype="image/png",
-			error=errcheck$errtext,bencherror=bench$errtext,metrics=list(first=list(name='failed',model_value=NA)))
+			            error=errcheck$errtext,bencherror=bench$errtext,metrics=list(first=list(name='failed',model_value=NA)))
 		return(result)
 	}
 	
@@ -26,21 +27,24 @@ DistributeGriddedAnalyses = function(Analysis,vars,obs,model,bench,region,cl){
 	
 	# Call analysis function:	
 	if(Analysis$type == 'TimeMean'){
-		metrics_data = TimeMeanAll(model,obs,bench,variable=vars[[Analysis$vindex]],plottype=Analysis$type,cl)
-		areturn = SpatialPlotAbsolute(model,obs,bench,metrics_data,
+		metrics_data = TimeMeanAll(model,obs,bench,variable=vars[[Analysis$vindex]],plottype=Analysis$type,cl,region)
+		areturn = SpatialPlotAbsolute(model,obs,bench,md=metrics_data,
 			variable=vars[[Analysis$vindex]],plottype=Analysis$type,region)
 	}else if(Analysis$type == 'TimeSD'){
-		metrics_data = TimeSDAll(model,obs,bench,variable=vars[[Analysis$vindex]],plottype=Analysis$type,cl)
+		metrics_data = TimeSDAll(model,obs,bench,variable=vars[[Analysis$vindex]],plottype=Analysis$type,cl,region)
 		areturn = SpatialPlotAbsolute(model,obs,bench,metrics_data,
 			variable=vars[[Analysis$vindex]],plottype=Analysis$type,region)
 	}else if(Analysis$type == 'TimeRMSE'){
-		metrics_data = TimeRMSEAll(model,obs,bench,variable=vars[[Analysis$vindex]],plottype=Analysis$type,cl)
+		metrics_data = TimeRMSEAll(model,obs,bench,variable=vars[[Analysis$vindex]],plottype=Analysis$type,cl,region)
 		areturn = SpatialPlotRelative(model,obs,bench,metrics_data,
 			variable=vars[[Analysis$vindex]],plottype=Analysis$type,region)		
 	}else if(Analysis$type == 'TimeCor'){
-		metrics_data = TimeCorAll(model,obs,bench,variable=vars[[Analysis$vindex]],plottype=Analysis$type,cl)
+		metrics_data = TimeCorAll(model,obs,bench,variable=vars[[Analysis$vindex]],plottype=Analysis$type,cl,region)
 		areturn = SpatialPlotRelative(model,obs,bench,metrics_data,
 			variable=vars[[Analysis$vindex]],plottype=Analysis$type,region)	
+	}else if(Analysis$type == 'Timeseries'){                                               
+	  metrics_data = Timeseries_unc(model,obs,bench,variable=vars[[Analysis$vindex]],plottype=Analysis$type,cl,region,outfile)    
+	  areturn = list(errtext=metrics_data$errtext,err=FALSE,metrics=metrics_data$metrics)
 	}else{
 		result = list(errtext = paste('Unknown analysis type \'',Analysis$type,
 			'\' requested in function DistributeGriddedAnalyses.',sep=''),err=TRUE)
@@ -49,13 +53,13 @@ DistributeGriddedAnalyses = function(Analysis,vars,obs,model,bench,region,cl){
 	
 	if(areturn$errtext=='ok'){	
 		result = list(type=outfiletype,filename=paste(getwd(),outfile,sep = "/"),mimetype="image/png",
-			metrics = areturn$metrics,analysistype=Analysis$type, 
-			variablename=vars[[Analysis$vindex]][['Name']][1],bencherror=bench$errtext)
+		            	metrics = areturn$metrics,analysistype=Analysis$type, 
+			            variablename=vars[[Analysis$vindex]][['Name']][1],bencherror=bench$errtext)
 	}else{
 		cat('\n###',areturn$errtext,'###\n')
 		result = list(type=outfiletype,filename=paste(getwd(),outfile,sep = "/"),mimetype="image/png",
-			metrics = areturn$metrics,analysistype=Analysis$type, 
-			variablename=vars[[Analysis$vindex]][['Name']][1],error=areturn$errtext,bencherror=bench$errtext)
+		            	metrics = areturn$metrics,analysistype=Analysis$type, 
+			            variablename=vars[[Analysis$vindex]][['Name']][1],error=areturn$errtext,bencherror=bench$errtext)
 	}	
 	
 	return(result)
@@ -193,3 +197,36 @@ DistributeSingleSiteAnalyses = function(Analysis,data,vars){
 	return(result)
 }
 
+
+SeparateEval = function(data){
+  # Separate EvalDataSetFiles according to name and variable
+  # Initialize fields
+  DataOut = list()
+  name = list()
+  variable = list()
+  idx = list()
+  
+  # Collect DataSet names and variables
+  for(d in 1:length(EvalDataSetFiles)){
+    name[d] = data[[d]]$name
+    variable[d] = data[[d]]$variable
+  }
+  
+  # Find unique variables and names
+  univar = unique(variable)
+  uniname = unique(name)
+  
+  # Concatenate strings
+  lmat = paste(variable,name)
+  smat = paste(univar,uniname)
+  
+  # Write separated data to DataOut
+  for(i in 1:length(smat)){
+    idx[[i]] = which(smat[i]==lmat)
+  }
+  for(n in 1:length(idx)) {
+    DataOut[[n]] = data[idx[[n]]]
+  }
+  
+  return(DataOut)  
+}

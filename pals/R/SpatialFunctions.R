@@ -53,6 +53,10 @@ EarthArea = function(obs){
 	}
 	return(list(cell=cell,earth=earth))
 }
+
+
+
+
 #
 # Interpolates from one lat-lon global 2D grid to another
 # using area weighted averaging
@@ -190,4 +194,29 @@ interpolate_areaweight=function(data_in,lat_centre_out,lon_centre_out,global=TRU
 		
 	return(data_out)
 
+}
+
+
+AreaWeightedMean = function(lonlen,lat,data,mdata){
+  # mdata: Data used to define the land mask
+  # lonlen: number of longitudes
+  # lat: vector of latitudes
+  # data: matrix containing all the data which will be averaged
+  
+  # Create landmask out of model data
+  mask = array(1,dim=dim(mdata))
+  idx = which(is.na(mdata),arr.ind=TRUE)
+  mask[idx] = NA
+  
+  # Calculate global weighted averages
+  wgtmat = cos(t(kronecker(matrix(1,1,lonlen),abs(lat)*pi/180))) # 720x360 
+  wgtmat_region = wgtmat*mask 
+  avg_data = array(NA,dim=c(dim(data)[4],dim(data)[3])) # 5x24  
+  for(i in 1:dim(avg_data)[1]){
+    for(t in 1:dim(avg_data)[2]){
+      avg_data[i,t]=mean(data[,,t,i]*wgtmat_region,na.rm=TRUE)/mean(wgtmat_region,na.rm=TRUE)
+    }
+  }
+  
+  return(avg_data)
 }
