@@ -25,7 +25,16 @@ TableBenchmarkColour = function() {
 
 ExtremeValueColour = function() {
   # Extreme values (special colour for values outside of plotting range)
-  'gray60' #deeppink'
+  'gray60' 
+}
+
+PoorQAColour = function() {
+  'gray8' 
+}
+
+TimeSeriesColour = function() {
+  colors =  c("black","indianred3","green1","gold2","orange1","blue2","yellowgreen","lightsteelblue4","deeppink1","darkorchid2","navajowhite2","orchid4") 
+  return(colors)
 }
 
 BenchmarkColours = function(bench,plotobs=TRUE){
@@ -74,7 +83,7 @@ ChooseColours = function(range,variablename,plottype,diffthreshold=NULL){
 	blue2green = colorRampPalette(c('blue','green'))
   
 	coolvars = c('Qle','Evap')
-	warmvars = c('Tair','Qh','Rnet','SWdown','SWnet','NEE','VISalbedo','NIRalbedo')
+	warmvars = c('Tair','Qh','Rnet','SWdown','SWnet','NEE','VISalbedo','NIRalbedo','Qs','RC','BFI')
 	colourres = 36 # approximately how many colours in a plot (will control size of white space if diff plot)
 	
 	# If no difference threshold has been specified, use 5%:

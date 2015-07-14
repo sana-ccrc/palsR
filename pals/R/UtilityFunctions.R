@@ -203,3 +203,167 @@ Prepare4DMatrix = function(data){
   }   
   return(adata)
 }
+
+Prepare4DMatrix_MultiObs = function(data){
+  obscounter = length(data$obs) 
+  for(i in 1:length(data$obs)){
+    if(data$obs[[i]]$name == "MPI ET" | data$obs[[i]]$name == "LandFlux ET"){
+      obscounter = obscounter + 1
+    }     
+  }
+  counter = 1 + data$bench$howmany + obscounter     # dimension of adata
+  
+  adata = list()
+  adata[[1]] = list(data=data$model$data, nm="model", lonlen=data$model$grid$lonlen, lat=data$model$grid$lat,                                   # model
+                    years = c(data$model$timing$syear,data$model$timing$syear + ((data$model$timing$tsteps/12)-1)))                                 
+  
+  add = 2
+  for(i in 1:length(data$obs)){
+    adata[[add]] = list(data=data$obs[[i]]$data, nm="obs", lonlen=data$obs[[i]]$grid$lonlen, lat=data$obs[[i]]$grid$lat,                         # obs
+                        years = c(data$obs[[i]]$timing$syear[1],data$obs[[i]]$timing$syear[1] + ((data$obs[[i]]$timing$tsteps/12)-1)))                          
+    add = add +1
+    if(data$obs[[i]]$name == "MPI ET" | data$obs[[i]]$name == "LandFlux ET"){
+      adata[[add]] = list(data=data$obs[[i]]$data_unc, nm="obs_unc", lonlen=data$obs[[i]]$grid$lonlen, lat=data$obs[[i]]$grid$lat,              # obs, std
+                          years = c(data$obs[[i]]$timing$syear[1],data$obs[[i]]$timing$syear[1] + ((data$obs[[i]]$timing$tsteps/12)-1)))                    
+      add = add +1
+    }
+  }
+  
+  # Add benchmark data, if any:
+  if(data$bench$exist){                                                                                                                          # bench
+    for(b in 1: (data$bench$howmany) ){
+      adata[[(add-1)+b]] = list(data=data$bench[[data$bench$index[b]]]$data, nm="bench", lonlen=data$bench[[data$bench$index[b]]]$grid$lonlen, 
+                                lat=data$bench[[data$bench$index[b]]]$grid$lat,
+                                years = c(data$bench[[data$bench$index[b]]]$timing$syear[1],data$bench[[data$bench$index[b]]]$timing$syear[1] + ((data$bench[[data$bench$index[b]]]$timing$tsteps/12)-1)))
+    }
+  }   
+  
+  return(adata)
+}
+
+
+CreateMask = function(obs,model,bench,type){
+  # Obs
+  if(type!="MultiObs" & type!="MultiObsMap"){
+    mask_obs = array(NA,dim=dim(obs$data[,,1])) # NA values        -> NA
+    mask_obs[which(!is.na(obs$data[,,1]))] = 1  # values available -> 1
+  }else{
+    mask_obs = list()
+    for(i in 1:length(obs)){
+      mask_obs[[i]] = array(NA,dim=dim(obs[[i]]$data[,,1])) # NA values        -> NA
+      mask_obs[[i]][which(!is.na(obs[[i]]$data[,,1]))] = 1  # values available -> 1
+    } 
+  }
+  
+  # Model
+  if(type!="MultiObsMap"){
+    mask_model = array(NA,dim=dim(model$data[,,1])) # NA values        -> NA 
+    mask_model[which(!is.na(model$data[,,1]))] = 0  # values available -> 1
+  }else{
+    mask_model=list()
+    for(j in 1:length(model)){
+      mask_model[[j]] = array(NA,dim=dim(model[[j]]$data[,,1])) # NA values        -> NA 
+      mask_model[[j]][which(!is.na(model[[j]]$data[,,1]))] = 0  # values available -> 1
+    }
+  }
+  
+  
+  # Bench
+  if(bench$exist){
+    mask_bench = list()
+    for(i in 1:bench$howmany){
+      mask_bench[[i]] = array(NA,dim=dim(bench[[i]]$data[,,1])) # NA values        -> NA
+      mask_bench[[i]][which(!is.na(bench[[i]]$data[,,1]))] = 0  # values available -> 1
+    }    
+  }
+  
+  # Mask areas where all the masks have values
+  if(type!="MultiObs" & type!="MultiObsMap"){
+    mask = mask_obs + mask_model 
+    if(bench$exist){
+      for(i in 1:bench$howmany){
+        mask = mask + mask_bench[[i]]
+      }
+    }
+  }else if(type=="MultiObs"){
+    mask = mask_model 
+    if(bench$exist){
+      for(i in 1:bench$howmany){
+        mask = mask + mask_bench[[i]]
+      }
+    }
+    for(i in 1:length(mask_obs)){
+      mask = mask + mask_obs[[i]]
+    }
+  }else if(type=="MultiObsMap"){
+    if(bench$exist){
+      mask = list(obs = mask_obs, model = mask_model, bench = mask_bench)
+    }else{
+      mask = list()
+      for(i in 1:length(obs)){
+        mask[[i]] = mask_obs[[i]] + mask_model[[i]]
+      }
+    }
+  }
+  return(mask) 
+}
+
+
+CategorizeQAData = function(obs,value_threshold,pct_threshold){
+  # Initialize arrays
+  catdata = array(1, dim=dim(obs$data_QA)[1:2])
+  bindata = array(0, dim=dim(obs$data_QA))  
+  # Categorize data
+  bindata[which((obs$data_QA>value_threshold) & (obs$data_QA!=7) & (obs$data_QA!=6))] = 1 # find "bad quality data" (1=bad and 0=good)
+  sumdata = apply(bindata,c(1,2),function(x) sum(na.omit(x))) # How many times is data quality "bad"
+  pctdata = (sumdata/obs$timing$tsteps)*100 # How many percentage (# out of 24) is data quality "bad"
+  catdata[which(pctdata > pct_threshold)] = NA # NA for "bad quality data", 1 for the rest
+  
+  return(catdata)
+}
+
+
+FindTimeSegment = function(model,obs){ 
+  # Read model year
+  myear = c(model$timing$syear : (model$timing$syear + (model$timing$tsteps/12 -1)))
+  
+  # Read observation years
+  oyear = list()
+  for(i in 1:length(obs)){
+    oyear[[i]] = obs[[i]]$timing$syear
+  }
+  
+  # Select specific years from model
+  matchyear = list()
+  matchmodel = list()
+  for(i in 1:length(obs)){
+    matchyear[[i]] = match(oyear[[i]],myear)*12
+    matchmodel[[i]] = model$data[,,((matchyear[[i]][1]-11):(matchyear[[i]][length(matchyear[[i]])]))]
+  }
+  
+  modmodel = list()
+  for(i in 1:length(obs)){
+    modmodel[[i]]= model
+    modmodel[[i]]$data = matchmodel[[i]]
+    modmodel[[i]]$timing$tsteps = ((oyear[[i]][length(oyear[[i]])] - oyear[[i]][1])+1)*12
+    modmodel[[i]]$timing$syear = oyear[[i]][1]
+  }
+  
+  return(modmodel)
+}
+
+
+CalculateAnnualMean = function(data){
+  nmonths = dim(data$data)[3]
+  mask = array(NA,dim=dim(data$data[,,1])) # NA values        -> NA
+  mask[which(!is.na(data$data[,,1]))] = 1  # values available -> 1
+  sequence = seq(1,nmonths+1,12)
+  aprec = array(NA,dim=c(dim(data$data)[1:2],nmonths/12))
+  mprec = array()
+  for(i in 1:(nmonths/12)){
+    aprec[,,i] = apply(data$data[,,sequence[i]:(sequence[i]-1)], c(1,2), mean, na.rm=T)
+    mprec[i] = WeightedMean(lat=data$grid$lat,data=aprec[,,i],mask=mask)
+  }
+  maprec = mean(mprec,na.rm=T)
+  return(maprec)
+}

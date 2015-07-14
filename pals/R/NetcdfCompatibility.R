@@ -307,7 +307,7 @@ GetVariableDetails = function(request_names){
       var_details[['Addition']] = c(0,0,0,0,0)
       var_details[['UnitsText']] = 'W/'~m^{2}
       var_details[['PlotName']] = 'Latent heat flux'
-      var_details[['Range']] = c(-1000,1000)
+      var_details[['Range']] = c(-1000,1000) 
     }else if(request_names[v] == 'Rnet'){
       var_details[['Name']] = c('Rnet')
       var_details[['UnitsName']] = c('W/m2','W/m^2','Wm^{-2}','wm2','watt/m^2')
@@ -364,7 +364,7 @@ GetVariableDetails = function(request_names){
       var_details[['Multiplier']] = c(1)
       var_details[['Addition']] = c(0)
       var_details[['UnitsText']] = '-'
-      var_details[['PlotName']] = 'Surface VIS albedo'
+      var_details[['PlotName']] = 'VIS albedo'
       var_details[['Range']] = c(0,1)
     }else if(request_names[v] == 'NIRalbedo'){
       var_details[['Name']] = c('NIRalbedo')
@@ -372,7 +372,39 @@ GetVariableDetails = function(request_names){
       var_details[['Multiplier']] = c(1)
       var_details[['Addition']] = c(0)
       var_details[['UnitsText']] = '-'
-      var_details[['PlotName']] = 'Surface NIR albedo'
+      var_details[['PlotName']] = 'NIR albedo'
+      var_details[['Range']] = c(0,1)
+    }else if(request_names[v] == 'Qs'){  
+      var_details[['Name']] = c('Qs')
+      var_details[['UnitsName']] = c('kg/m2/s','kg/m^2/s','kgm^{-2}s^{-1}')
+      var_details[['Multiplier']] = c(1,1,1)
+      var_details[['Addition']] = c(0,0,0)
+      var_details[['UnitsText']] = 'kg/'~m^{2}~'/s'
+      var_details[['PlotName']] = 'Surface runoff'
+      var_details[['Range']] = c(0,Inf) 
+    }else if(request_names[v] == 'Qsb'){  
+      var_details[['Name']] = c('Qsb')
+      var_details[['UnitsName']] = c('kg/m2/s','kg/m^2/s','kgm^{-2}s^{-1}')
+      var_details[['Multiplier']] = c(1,1,1)
+      var_details[['Addition']] = c(0,0,0)
+      var_details[['UnitsText']] = 'kg/'~m^{2}~'/s'
+      var_details[['PlotName']] = 'Subsurface runoff'
+      var_details[['Range']] = c(0,Inf)
+    }else if(request_names[v] == 'RC'){  
+      var_details[['Name']] = c('RC')
+      var_details[['UnitsName']] = c('-')
+      var_details[['Multiplier']] = c(1)
+      var_details[['Addition']] = c(0)
+      var_details[['UnitsText']] = '-'
+      var_details[['PlotName']] = 'Runoff coefficient'
+      var_details[['Range']] = c(0,1) 
+    }else if(request_names[v] == 'BFI'){  
+      var_details[['Name']] = c('BFI')
+      var_details[['UnitsName']] = c('-')
+      var_details[['Multiplier']] = c(1)
+      var_details[['Addition']] = c(0)
+      var_details[['UnitsText']] = '-'
+      var_details[['PlotName']] = 'Baseflow index'
       var_details[['Range']] = c(0,1)
     }
     variable_list[[v]] = var_details

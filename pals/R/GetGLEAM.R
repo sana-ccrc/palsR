@@ -233,7 +233,7 @@ GetGLEAM_Aus_v2A = function(variable,filelist,force_interval='no',dsetversion='d
     ET = ET*28.4 # convert from mm/day to W/m^2
   }
   
-  timing = list(interval=interval,tsteps=tsteps)
+  timing = list(interval=interval,tsteps=tsteps,syear=year)
   
   # Return result
   obs = list(err=FALSE,errtext=errtext,data=ET,grid=grid,timing=timing,name='GLEAM_v2A ET')
@@ -312,7 +312,7 @@ GetGLEAM_Aus_v2B = function(variable,filelist,force_interval='no',dsetversion='d
     ET = ET*28.4 # convert from mm/day to W/m^2
   }
   
-  timing = list(interval=interval,tsteps=tsteps)
+  timing = list(interval=interval,tsteps=tsteps,syear=year)
   
   # Return result
   obs = list(err=FALSE,errtext=errtext,data=ET,grid=grid,timing=timing,name='GLEAM_v2B ET')
@@ -462,7 +462,7 @@ GetGLEAM_Global_v2A = function(variable,filelist,force_interval='no',dsetversion
   ET_tmp[((grid$lonlen/2)+1):grid$lonlen,1:grid$latlen,1:tsteps]=ET[1:(grid$lonlen/2),grid$latlen:1,1:tsteps]
   ET=ET_tmp
   
-  timing = list(interval=interval,tsteps=tsteps)
+  timing = list(interval=interval,tsteps=tsteps,syear=year)
   
   # Return result
   obs = list(err=FALSE,errtext=errtext,data=ET,grid=grid,timing=timing,name='GLEAM_v2A ET')
@@ -553,7 +553,7 @@ GetGLEAM_Global_v2B = function(variable,filelist,force_interval='no',dsetversion
   ET_tmp[((grid$lonlen/2)+1):grid$lonlen,1:grid$latlen,1:tsteps]=ET[1:(grid$lonlen/2),grid$latlen:1,1:tsteps]
   ET=ET_tmp
   
-  timing = list(interval=interval,tsteps=tsteps)
+  timing = list(interval=interval,tsteps=tsteps,syear=year)
   
   # Return result
   obs = list(err=FALSE,errtext=errtext,data=ET,grid=grid,timing=timing,name='GLEAM_v2B ET')

@@ -196,17 +196,16 @@ interpolate_areaweight=function(data_in,lat_centre_out,lon_centre_out,global=TRU
 
 }
 
-
-AreaWeightedMean = function(lonlen,lat,data,mdata){
-  # mdata: Data used to define the land mask
+AreaWeightedMean = function(lonlen,lat,data,mask){
+  # mask: land mask
   # lonlen: number of longitudes
   # lat: vector of latitudes
   # data: matrix containing all the data which will be averaged
   
   # Create landmask out of model data
-  mask = array(1,dim=dim(mdata))
-  idx = which(is.na(mdata),arr.ind=TRUE)
-  mask[idx] = NA
+  #mask = array(1,dim=dim(mdata))
+  #idx = which(is.na(mdata),arr.ind=TRUE)
+  #mask[idx] = NA
   
   # Calculate global weighted averages
   wgtmat = cos(t(kronecker(matrix(1,1,lonlen),abs(lat)*pi/180))) # 720x360 
@@ -220,3 +219,49 @@ AreaWeightedMean = function(lonlen,lat,data,mdata){
   
   return(avg_data)
 }
+
+
+AreaWeightedMean_MultiObs = function(lonlen,lat,data,name,mask,years){
+  # lonlen: number of longitudes
+  # lat: vector of latitudes
+  # data: matrix containing all the data which will be averaged
+  
+  if(length(dim(lat))==2){
+    lat = lat[1,]
+  }
+  # Calculate global weighted averages
+  wgtmat = cos(t(kronecker(matrix(1,1,lonlen),abs(lat)*pi/180))) # 720x360 
+  wgtmat_region = wgtmat*mask 
+  avg_data = array()   
+    for(t in 1:dim(data)[3]){
+      avg_data[[t]]=mean(data[,,t]*wgtmat_region,na.rm=TRUE)/mean(wgtmat_region,na.rm=TRUE)
+  }
+  return(result=list(data=avg_data, nm=name, yr=years))
+}
+
+
+WeightedMean = function(lat,data,mask){
+  # mask: land mask
+  # lat: vector of latitudes
+  # data: matrix containing all the data which will be averaged
+  
+  # Calculate global weighted averages
+  wgtmat = cos(t(kronecker(matrix(1,1,dim(data)[1]),abs(lat)*pi/180))) # 720x360 
+  wgtmat_region = wgtmat*mask 
+  wmean=mean(data*wgtmat_region,na.rm=TRUE)/mean(wgtmat_region,na.rm=TRUE)  
+  return(wmean)
+}
+
+
+WeightedSd = function(lat,data,mask){
+  # mask: land mask
+  # lat: vector of latitudes
+  # data: matrix containing all the data which will be averaged
+  
+  # Calculate global weighted averages
+  wgtmat = cos(t(kronecker(matrix(1,1,dim(data)[1]),abs(lat)*pi/180))) # 720x360 
+  wgtmat_region = wgtmat*mask 
+  wsd=sd(data*wgtmat_region,na.rm=TRUE)/mean(wgtmat_region,na.rm=TRUE)
+  return(wsd)
+}
+

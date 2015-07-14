@@ -62,7 +62,7 @@ if(variable[['Name']][1] == 'Qle'){
   ET = ET*11.57 # convert from MJ m-2 d-1 to W/m^2
 } 
 
-timing = list(interval=interval,tsteps=tsteps)
+timing = list(interval=interval,tsteps=tsteps,syear=year)
 
 errtext='ok'
 
@@ -216,7 +216,7 @@ GetMPI_Global = function(variable,filelist,force_interval='no',dsetversion='defa
 	ET_tmp[((grid$lonlen/2)+1):grid$lonlen,1:grid$latlen,1:tsteps]=ET[1:(grid$lonlen/2),grid$latlen:1,1:tsteps]
   ET=ET_tmp
   
-	timing = list(interval=interval,tsteps=tsteps)
+	timing = list(interval=interval,tsteps=tsteps,syear=year)
 	
   errtext='ok'
   
