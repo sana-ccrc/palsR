@@ -34,7 +34,7 @@ if((varname=="Qle")|(varname=="VISalbedo")|(varname=="NIRalbedo")|(varname=="Qs"
   zcols = ChooseColours(range=md$zrange,variablename=varname,plottype='difference')
 }
 
-diffcols = ChooseColours(md$diffrange,varname,'difference')
+diffcols = ChooseColours(range=md$diffrange,variablename=varname,plottype='difference')
 
 ### Draw plot panels ###
 # First plot: model	
