@@ -117,8 +117,8 @@ ChangeMetUnits = function(datain,found,elevation){
 	# Temperature from C to K:
 	datain$data$Tair = datain$data$Tair + zeroC
 	if(found$PSurf){
-		# Pressure from mbar to Pa
-		datain$data$PSurf = Mbar2Pa(datain$data$PSurf)
+		# Pressure from kPa to Pa
+		datain$data$PSurf = kPa2Pa(datain$data$PSurf)
 	}else{
 		# Synthesize PSurf based on temperature and elevation
 		datain$data$PSurf = SynthesizePSurf(datain$data$Tair,elevation)
@@ -130,11 +130,41 @@ ChangeMetUnits = function(datain,found,elevation){
 		# Snowfall from mm/timestep to mm/s
 		datain$data$Snowf = datain$data$Snowf/timestepsize
 	}
-	# Relative to specific humidity:
-	datain$data$Qair = Rel2SpecHum(datain$data$Qair,
+	# Absolute to specific humidity:
+	datain$data$Qair = Abs2SpecHum(datain$data$Qair,
 		datain$data$Tair,datain$data$PSurf)
 	return(datain)
 }
+
+## Previous version
+# ChangeMetUnits = function(datain,found,elevation){
+#   # Performs units changes from flux data provider
+#   # template units to netcdf met/flux file units.
+#   # First calculate timestep size:
+#   timestepsize = 
+#     (datain$data$LocHoD[2] - datain$data$LocHoD[1])*3600
+#   # Temperature from C to K:
+#   datain$data$Tair = datain$data$Tair + zeroC
+#   if(found$PSurf){
+#     # Pressure from mbar to Pa
+#     datain$data$PSurf = Mbar2Pa(datain$data$PSurf)
+#   }else{
+#     # Synthesize PSurf based on temperature and elevation
+#     datain$data$PSurf = SynthesizePSurf(datain$data$Tair,elevation)
+#     datain$data$PSurfFlag = 0 # i.e. all gap-filled
+#   }
+#   # Rainfall from mm/timestep to mm/s
+#   datain$data$Rainf = datain$data$Rainf/timestepsize
+#   if(found$Snowf){
+#     # Snowfall from mm/timestep to mm/s
+#     datain$data$Snowf = datain$data$Snowf/timestepsize
+#   }
+#   # Relative to specific humidity:
+#   datain$data$Qair = Rel2SpecHum(datain$data$Qair,
+#                                  datain$data$Tair,datain$data$PSurf)
+#   return(datain)
+# }
+
 CheckTextDataRanges = function(datain,found){
 	# Get acceptable ranges for variables:	
 	range = GetVariableRanges()
@@ -292,7 +322,7 @@ CheckTextDataVars = function(datain){
 	SWup_qc = FALSE  
 	Rnet_qc = FALSE  
 	found = list(LWdown=LWdown,LWdown_all=LWdown_all,Snowf=Snowf,
-		PSurf=PSurf,CO2air=CO2air,Qle=Qle,Qh=Qh,Qg=Qg,NEE=NEE,
+		PSurf=PSurf,CO2air=CO2air,Qle=Qle,Qh=Qh,Qg=Qg,NEE=NEE,GPP=GPP,
 		SWup=SWup,Rnet=Rnet,SWdown_qc=SWdown_qc,Tair_qc=Tair_qc,
 		Qair_qc=Qair_qc,Wind_qc=Wind_qc,Rainf_qc=Rainf_qc,
 		LWdown_qc=LWdown_qc,Snowf_qc=Snowf_qc,PSurf_qc=PSurf_qc,
@@ -395,7 +425,7 @@ CheckTextDataVars = function(datain){
 	if((!found$Qle)&(!found$Qh)&(!found$NEE)&(!found$Rnet)&
 		(!found$GPP)&(!found$SWup)&(!found$Qg)){
 		CheckError(paste('S2: Could not find any LSM evaluation',
-		'varaibles: Qle, Qh, Qg, NEE, GPP, SWup or Rnet.'))
+		'variables: Qle, Qh, Qg, NEE, GPP, SWup or Rnet.'))
 	}
 	return(found)	
 }
@@ -452,7 +482,7 @@ CreateFluxNcFile = function(fluxfilename,datain,latitude,longitude,
 	}
 	if(found$GPP){ # Define GPP variable:
 		GPP=var.def.ncdf('GPP','umol/m^2/s', dim=list(xd,yd,td),
-			missval=missing_value,longname='Gross primary poductivity of CO2')
+			missval=missing_value,longname='Gross primary productivity of CO2')
 		fluxncvars[[ctr]] = GPP
 		ctr = ctr + 1
 	}
@@ -609,6 +639,11 @@ CreateFluxNcFile = function(fluxfilename,datain,latitude,longitude,
 		put.var.ncdf(ncid,NEE,vals=datain$data$NEE)
 		att.put.ncdf(ncid,NEE,'CF_name','surface_upward_mole_flux_of_carbon_dioxide **')
 		att.put.ncdf(ncid,NEE,'CFname**','Note units are different')
+	}
+	if(found$GPP){
+	  put.var.ncdf(ncid,GPP,vals=datain$data$GPP)
+	  att.put.ncdf(ncid,GPP,'CF_name','gross_primary_productivity_of_biomass_expressed_as_carbon **')
+	  att.put.ncdf(ncid,GPP,'CFname**','Note units are different')
 	}
 	if(found$Rnet){
 		put.var.ncdf(ncid,Rnet,vals=datain$data$Rnet)
@@ -917,4 +952,79 @@ CreateMetNcFile = function(metfilename,datain,latitude,longitude,timestepsize,
 	}
 	# Close netcdf file:
 	close.ncdf(ncid)
+}
+
+OzFlux2PALSQCFlag = function(flag){
+  ## In PALS:
+  # 1: original data
+  # 0: not original data
+  # -9999: unknown
+  flag[which(flag>1)]=0
+  flag[which(flag<1)]=0
+  flag[which(is.na(flag))]=0 #-9999
+  return(flag)
+}
+
+OzFluxNc2PALSQCFlag = function(flag){
+  ## In PALS:
+  # 1: original data
+  # 0: not original data
+  # -9999: unknown
+  flag[which(flag!=0)]=-9999
+  flag[which(flag==0)]=1
+  flag[which(flag==-9999)]=0
+  flag[which(is.na(flag))]=0
+  return(flag)
+}
+
+NA2MissVal = function(data){
+  # Convert from NA to -9999 for missing value
+  data[which(is.na(data))] = -9999
+  return(data)
+}
+
+FindMissingValue = function(PALSt,SprdMissingVal){
+  if(any(PALSt[4:dim(PALSt)[1],3]==SprdMissingVal)){cat('Missing values in SWdown \n')}
+  if(any(PALSt[4:dim(PALSt)[1],3]<0 & PALSt[4:dim(PALSt)[1],3]!=SprdMissingVal)){cat('Negative values in SWdown \n')}
+  if(any(PALSt[4:dim(PALSt)[1],4]==SprdMissingVal)){cat('Missing values in SWdownFlag \n')}
+  if(any(PALSt[4:dim(PALSt)[1],5]==SprdMissingVal)){cat('Missing values in LWdown \n')}
+  if(any(PALSt[4:dim(PALSt)[1],6]==SprdMissingVal)){cat('Missing values in LWdownFlag \n')}
+  if(any(PALSt[4:dim(PALSt)[1],7]==SprdMissingVal)){cat('Missing values in Tair \n')}
+  if(any(PALSt[4:dim(PALSt)[1],8]==SprdMissingVal)){cat('Missing values in TairFlag \n')}
+  if(any(PALSt[4:dim(PALSt)[1],9]==SprdMissingVal)){cat('Missing values in Qair \n')}
+  if(any(PALSt[4:dim(PALSt)[1],10]==SprdMissingVal)){cat('Missing values in QairFlag \n')}
+  if(any(PALSt[4:dim(PALSt)[1],11]==SprdMissingVal)){cat('Missing values in Wind \n')}
+  if(any(PALSt[4:dim(PALSt)[1],12]==SprdMissingVal)){cat('Missing values in WindFlag \n')}
+  if(any(PALSt[4:dim(PALSt)[1],13]==SprdMissingVal)){cat('Missing values in Rainfall \n')}
+  if(any(PALSt[4:dim(PALSt)[1],14]==SprdMissingVal)){cat('Missing values in RainfFlag \n')}
+  if(any(PALSt[4:dim(PALSt)[1],15]==SprdMissingVal)){cat('Missing values in Snowf \n')}
+  if(any(PALSt[4:dim(PALSt)[1],16]==SprdMissingVal)){cat('Missing values in SnowfFlag \n')}
+  if(any(PALSt[4:dim(PALSt)[1],17]==SprdMissingVal)){cat('Missing values in PSurf \n')}
+  if(any(PALSt[4:dim(PALSt)[1],18]==SprdMissingVal)){cat('Missing values in PSurfFlag \n')}
+  if(any(PALSt[4:dim(PALSt)[1],19]==SprdMissingVal)){cat('Missing values in CO2air \n')}
+  if(any(PALSt[4:dim(PALSt)[1],20]==SprdMissingVal)){cat('Missing values in CO2airFlag \n')}
+  if(any(PALSt[4:dim(PALSt)[1],21]==SprdMissingVal)){cat('Missing values in Rnet \n')}
+  if(any(PALSt[4:dim(PALSt)[1],22]==SprdMissingVal)){cat('Missing values in RnetFlag \n')}
+  if(any(PALSt[4:dim(PALSt)[1],23]==SprdMissingVal)){cat('Missing values in SWup \n')}
+  if(any(PALSt[4:dim(PALSt)[1],23]<0 & PALSt[4:dim(PALSt)[1],23]!=SprdMissingVal)){cat('Negative values in SWup \n')}
+  if(any(PALSt[4:dim(PALSt)[1],24]==SprdMissingVal)){cat('Missing values in SWupFlag \n')}
+  if(any(PALSt[4:dim(PALSt)[1],25]==SprdMissingVal)){cat('Missing values in Qle \n')}
+  if(any(PALSt[4:dim(PALSt)[1],26]==SprdMissingVal)){cat('Missing values in QleFlag \n')}
+  if(any(PALSt[4:dim(PALSt)[1],27]==SprdMissingVal)){cat('Missing values in Qh \n')}
+  if(any(PALSt[4:dim(PALSt)[1],28]==SprdMissingVal)){cat('Missing values in QhFlag \n')}
+  if(any(PALSt[4:dim(PALSt)[1],29]==SprdMissingVal)){cat('Missing values in NEE \n')}
+  if(any(PALSt[4:dim(PALSt)[1],30]==SprdMissingVal)){cat('Missing values in NEEFlag \n')}
+  if(any(PALSt[4:dim(PALSt)[1],31]==SprdMissingVal)){cat('Missing values in GPP \n')}
+  if(any(PALSt[4:dim(PALSt)[1],32]==SprdMissingVal)){cat('Missing values in GPPFlag \n')}
+  if(any(PALSt[4:dim(PALSt)[1],33]==SprdMissingVal)){cat('Missing values in Qg \n')}
+  if(any(PALSt[4:dim(PALSt)[1],34]==SprdMissingVal)){cat('Missing values in QgFlag \n')}
+}
+
+MeanValue = function(PALSt, var_idx){
+  if( (substr(PALSt[4,1],1,3)!="1/1") & (PALSt[4,2]!="0") ){
+    stop('Does not start on January 1st at 00:00:00! \n')
+  }else{
+      mean_val = mean(as.double(PALSt[4:dim(PALSt)[1],var_idx]), na.rm=T)
+  }
+  return(mean_val)
 }

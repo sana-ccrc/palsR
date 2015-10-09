@@ -42,16 +42,26 @@ PlotGlobal = function(lon,lat,data,meanval,sdval,varname,unitstxt,longvarname,zr
 	if(!suppressunits){
 		text(x=textloc1[1],y=textloc1[2],labels=unitstxt)
 	}
-	text(x=textloc2[1],y=textloc2[2],labels=paste('Mean:',signif(meanval,3)))
-	text(x=textloc3[1],y=textloc3[2],labels=paste('SD:',signif(sdval,2)))
-	
+  
+  if(varname=="VISalbedo" | varname=="NIRalbedo"){
+    text(x=textloc2[1]-52,y=textloc2[2],labels=paste('Mean:'),pos=4)                    # Mean
+    text(x=textloc2[1]-8,y=(textloc2[2]),labels=paste(signif(meanval[1],3)),pos=4)
+    text(x=(textloc2[1]-8),y=(textloc2[2]-7),labels=paste(signif(meanval[2],3)),pos=4)
+    text(x=textloc3[1]-42,y=(textloc3[2]-4),labels=paste('SD:'),pos=4)                  # SD
+    text(x=(textloc3[1]-9),y=(textloc3[2]-4),labels=paste(signif(sdval[1],2)),pos=4)
+    text(x=(textloc3[1]-9),y=(textloc3[2]-11),labels=paste(signif(sdval[2],2)),pos=4)
+  }else{
+    text(x=textloc2[1],y=textloc2[2],labels=paste('Mean:',signif(meanval,3)))
+    text(x=textloc3[1],y=textloc3[2],labels=paste('SD:',signif(sdval,2)))
+  }
+  	
 	cat('TTT post all plotting:',proc.time()[3],'\n')
 	
 	return(errtext)
 }
 
 TextLocationGlobal = function(npanels){
-	if(npanels<5){
+	if(npanels<3){ # before: <5
 		text_location = 'bottomright'
 	}else{
 		text_location = 'middle'
