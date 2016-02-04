@@ -1,0 +1,65 @@
+{
+   "_id" : "mVJDHsjHSJWHK",
+   "files" : [
+       {
+           "type" : "ModelOutput",
+           "path" : "/srv/ccrc/data42/z5043321/DATA/CABLE_OUTPUT/cable_out_2005.nc",
+           "mimetype" : "application/x-netcdf",
+	   "name" : "CABLEOutput-2005",
+	   "variable" : "Qle"
+       },
+       {   
+           "type" : "DataSet", 
+           "path" : "/srv/ccrc/data45/z5051287/PALS_dataset/LandFlux/LandFluxEVAL.merged.monthly.diagnostic.allVar_2005.nc",
+           "mimetype" : "application/x-netcdf",
+	       "name" : "LandFlux",
+	   "variable" : "Qle"
+       },
+ {   
+           "type" : "DataSet", 
+           "path" : "/srv/ccrc/data45/z5051287/PALS_dataset/MODIS/MOD16_ET_GSWP3_2005.nc",
+           "mimetype" : "application/x-netcdf",
+	       "name" : "MODIS",
+	   "variable" : "Qle"
+       },
+        {   
+           "type" : "DataSet", 
+           "path" : "/srv/ccrc/data45/z5051287/PALS_dataset/GLEAM/v2A/GLEAM-E_2005.nc",
+           "mimetype" : "application/x-netcdf",
+	   "name" : "GLEAM_v2A",
+	   "variable" : "Qle"
+       },
+       {   
+            "type" : "DataSet", 
+           "path" : "/srv/ccrc/data45/z5051287/PALS_dataset/MPI/EnsembleLEcor_May12.2005.nc",
+           "mimetype" : "application/x-netcdf",
+	       "name" : "MPI_uncertainty",
+	   "variable" : "Qle"
+       },
+            {   
+           "type" : "Benchmark", 
+           "path" : "/srv/ccrc/data42/z5043321/DATA/MsTMIP/CLM4VIC_BG1_Monthly/CLM4VIC_BG1_Monthly_Qle_2005.nc4",
+           "mimetype" : "application/x-netcdf",
+		   "number" : "1",
+	       "name" : "CLM4VIC-bench-2005",
+	   "variable" : "Qle"
+       },
+{   
+           "type" : "Benchmark", 
+           "path" : "/srv/ccrc/data42/z5043321/DATA/MsTMIP/CLM4_BG1_Monthly/CLM4_BG1_Monthly_Qle_2005.nc4",
+           "mimetype" : "application/x-netcdf",
+		   "number" : "2",
+	       "name" : "CLM4-bench-2005",
+	   "variable" : "Qle"
+       },
+       {   
+           "type" : "Benchmark", 
+           "path" : "/srv/ccrc/data42/z5043321/DATA/MsTMIP/SIBCASA_RG1_Monthly/SiBCASA_RG1_Monthly_Qle_2005.nc4",
+           "mimetype" : "application/x-netcdf",
+		   "number" : "3",
+	       "name" : "SiBCASA-bench-2005",
+	   "variable" : "Qle"
+       }
+
+   ]
+}

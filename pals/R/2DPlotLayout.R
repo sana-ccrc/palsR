@@ -28,7 +28,7 @@ if(npanels <= 4){
 }
 
 # Fetch colour scheme:
-if((varname=="Qle")|(varname=="VISalbedo")|(varname=="NIRalbedo")|(varname=="Qs")|(varname=="RC")|(varname=="BFI")){
+if((varname=="Qle")|(varname=="VISalbedo")|(varname=="NIRalbedo")|(varname=="Qs")|(varname=="RC")|(varname=="BFI")|(varname=="SWdown")|(varname=="LWdown")){
   zcols = ChooseColours(range=md$zrange,variablename=varname,plottype='positive')
 }else if(varname == "NEE"){
   zcols = ChooseColours(range=md$zrange,variablename=varname,plottype='difference')

@@ -393,10 +393,134 @@ if((TypeE$type=="MultiVar") | (TypeE$type=="Single") | (TypeE$type=="Multiple"))
         OutInfo[[actr]] = DistributeGriddedAnalyses(Analysis=SingleAnalysisList,vars=vars,obs=obs,model=model,bench=bench,region=region,type=TypeE$type,cl)
       }
       stopCluster(cl) # Stop cluster
-    }
-  }
+    } else if((EvalProducts[[v]][[1]]$name == "EBAF") & (EvalProducts[[v]][[1]]$variable == "SWdown")){
+      vars = GetVariableDetails(c('SWdown'))
+      obs = GetEBAF_SWdown_Global(vars[[1]],EvalProducts[[v]],force_interval='monthly')
+      model = GetModelOutput(vars[[1]],ModelOutputFiles)  
+      bench = GetBenchmarks(vars[[1]],BenchmarkFiles,nBench)  
+      ## Change resolution of "obs" from 1° to 0.5°
+      #data_in=list(dat=obs$data,lat=obs$grid$lat,lon=obs$grid$lon,lon_bnds=matrix(c(obs$grid$lon-0.5,obs$grid$lon+0.5),ncol=360,byrow=T),lat_bnds=matrix(c(obs$grid$lat-0.5,obs$grid$lat+0.5),ncol=180,byrow=T))
+      #obs_fine=interpolate_areaweight(data_in,model$grid$lat,model$grid$lon)
+      #obs$data <- obs_fine  
+      #obs$grid <- model$grid 
+    
+  ## Change resolution of "model" from 0.5° to 1°
+
+      modeli=array(NA,dim=c(length(obs$grid$lon),length(obs$grid$lat),model$timing$tsteps))
+      grid.list<- list(x= obs$grid$lon, y=obs$grid$lat)
+      for(t in 1:model$timing$tsteps){
+        obj<- list( x= model$grid$lon, y=model$grid$lat, z= model$data[,,t]) 
+        model_interp=interp.surface.grid( obj, grid.list)
+        modeli[,,t]=model_interp$z
+      }
+      model$data <- modeli
+      model$grid <- obs$grid   
+      ## Change resolution of "bench" from 0.5° to 1° 
+      if(bench$exist){
+        grid.list<- list(x= obs$grid$lon, y=obs$grid$lat)
+        for(b in 1:bench$howmany){
+          benchi=array(NA,dim=c(length(obs$grid$lon),length(obs$grid$lat),bench[[b]]$timing$tsteps))
+          for(t in 1:bench[[bench$index[[b]]]]$timing$tsteps){
+            obj<- list( x= bench[[b]]$grid$lon, y=bench[[b]]$grid$lat, z= bench[[b]]$data[,,t]) 
+            bench_interp=interp.surface.grid( obj, grid.list)
+            benchi[,,t]=bench_interp$z
+          }
+          bench[[b]]$data <- benchi
+          bench[[b]]$grid <- obs$grid
+        }   
+      }
+      # Add those analyses that are equally applicable to any variable to analysis list:
+      for(a in 1:length(genAnalysis)){
+        SingleAnalysisList = list(vindex=1, type=genAnalysis[a])
+        actr = actr + 1
+        # Create cluster:
+        cl = makeCluster(getOption('cl.cores', detectCores()))
+        OutInfo[[actr]] = DistributeGriddedAnalyses(SingleAnalysisList,vars=vars,obs=obs,model=model,bench=bench,region=region,type=TypeE$type,cl)
+      }
+      stopCluster(cl) # Stop cluster
+      
+    }else if((EvalProducts[[v]][[1]]$name == "PRINCETON") & (EvalProducts[[v]][[1]]$variable == "SWdown")){
+      vars = GetVariableDetails(c('SWdown'))
+      obs = GetPRINCETON_SWdown_monthly_Global(vars[[1]],EvalProducts[[v]],force_interval='monthly')
+      model = GetModelOutput(vars[[1]],ModelOutputFiles)  
+      bench = GetBenchmarks(vars[[1]],BenchmarkFiles,nBench)  
+   #  } ## I think that this is wrong
+      # Add those analyses that are equally applicable to any variable to analysis list:
+      for(a in 1:length(genAnalysis)){
+        SingleAnalysisList = list(vindex=1, type=genAnalysis[a])
+        actr = actr + 1
+        # Create cluster:
+        cl = makeCluster(getOption('cl.cores', detectCores()))
+        OutInfo[[actr]] = DistributeGriddedAnalyses(SingleAnalysisList,vars=vars,obs=obs,model=model,bench=bench,region=region,type=TypeE$type,cl)
+      }
+      stopCluster(cl) # Stop cluster
+
+  }else if((EvalProducts[[v]][[1]]$name == "EBAF") & (EvalProducts[[v]][[1]]$variable == "LWdown")){
+      vars = GetVariableDetails(c('LWdown'))
+      obs = GetEBAF_LWdown_Global(vars[[1]],EvalProducts[[v]],force_interval='monthly')
+      model = GetModelOutput(vars[[1]],ModelOutputFiles)  
+      bench = GetBenchmarks(vars[[1]],BenchmarkFiles,nBench)  
+      ## Change resolution of "obs" from 1° to 0.5°
+      #data_in=list(dat=obs$data,lat=obs$grid$lat,lon=obs$grid$lon,lon_bnds=matrix(c(obs$grid$lon-0.5,obs$grid$lon+0.5),ncol=360,byrow=T),lat_bnds=matrix(c(obs$grid$lat-0.5,obs$grid$lat+0.5),ncol=180,byrow=T))
+      #obs_fine=interpolate_areaweight(data_in,model$grid$lat,model$grid$lon)
+      #obs$data <- obs_fine  
+      #obs$grid <- model$grid 
+    
+  ## Change resolution of "model" from 0.5° to 1°
+
+      modeli=array(NA,dim=c(length(obs$grid$lon),length(obs$grid$lat),model$timing$tsteps))
+      grid.list<- list(x= obs$grid$lon, y=obs$grid$lat)
+      for(t in 1:model$timing$tsteps){
+        obj<- list( x= model$grid$lon, y=model$grid$lat, z= model$data[,,t]) 
+        model_interp=interp.surface.grid( obj, grid.list)
+        modeli[,,t]=model_interp$z
+      }
+      model$data <- modeli
+      model$grid <- obs$grid   
+      ## Change resolution of "bench" from 0.5° to 1° 
+      if(bench$exist){
+        grid.list<- list(x= obs$grid$lon, y=obs$grid$lat)
+        for(b in 1:bench$howmany){
+          benchi=array(NA,dim=c(length(obs$grid$lon),length(obs$grid$lat),bench[[b]]$timing$tsteps))
+          for(t in 1:bench[[bench$index[[b]]]]$timing$tsteps){
+            obj<- list( x= bench[[b]]$grid$lon, y=bench[[b]]$grid$lat, z= bench[[b]]$data[,,t]) 
+            bench_interp=interp.surface.grid( obj, grid.list)
+            benchi[,,t]=bench_interp$z
+          }
+          bench[[b]]$data <- benchi
+          bench[[b]]$grid <- obs$grid
+        }   
+      }
+      # Add those analyses that are equally applicable to any variable to analysis list:
+      for(a in 1:length(genAnalysis)){
+        SingleAnalysisList = list(vindex=1, type=genAnalysis[a])
+        actr = actr + 1
+        # Create cluster:
+        cl = makeCluster(getOption('cl.cores', detectCores()))
+        OutInfo[[actr]] = DistributeGriddedAnalyses(SingleAnalysisList,vars=vars,obs=obs,model=model,bench=bench,region=region,type=TypeE$type,cl)
+      }
+      stopCluster(cl) # Stop cluster
+      
+    }else if((EvalProducts[[v]][[1]]$name == "PRINCETON") & (EvalProducts[[v]][[1]]$variable == "LWdown")){
+      vars = GetVariableDetails(c('LWdown'))
+      obs = GetPRINCETON_LWdown_monthly_Global(vars[[1]],EvalProducts[[v]],force_interval='monthly')
+      model = GetModelOutput(vars[[1]],ModelOutputFiles)  
+      bench = GetBenchmarks(vars[[1]],BenchmarkFiles,nBench)  
+
+
+      # Add those analyses that are equally applicable to any variable to analysis list:
+      for(a in 1:length(genAnalysis)){
+        SingleAnalysisList = list(vindex=1, type=genAnalysis[a])
+        actr = actr + 1
+        # Create cluster:
+        cl = makeCluster(getOption('cl.cores', detectCores()))
+        OutInfo[[actr]] = DistributeGriddedAnalyses(SingleAnalysisList,vars=vars,obs=obs,model=model,bench=bench,region=region,type=TypeE$type,cl)
+      }
+      stopCluster(cl) # Stop cluster
+  }# end else if((EvalProducts[[v]][[1]]$name == "PRINCETON") & (EvalProducts[[v]][[1]]$variable == "LWdown"))
   
-  
+}
+    
 #-----------------------------------------------------------------------------------------------------------------------  
 }else if(TypeE$type=="MultiObs"){
   # One single variable, but multiple observational datasets
@@ -479,14 +603,95 @@ if((TypeE$type=="MultiVar") | (TypeE$type=="Single") | (TypeE$type=="Multiple"))
       OutInfo[[actr]] = DistributeGriddedAnalyses(Analysis=SingleAnalysisList,vars=vars,obs=obs,model=model,bench=bench,region=region,type=TypeE$type,cl)
     }
     stopCluster(cl) # Stop cluster  
-  }
+  }else if(EvalProducts[[1]][[1]]$variable == "SWdown"){
+    vars = GetVariableDetails(c('SWdown'))
 
-  
+    model = GetModelOutput(vars[[1]],ModelOutputFiles)  
+
+    bench = GetBenchmarks(vars[[1]],BenchmarkFiles,nBench)
+
+
+    genAnalysis = c('Timeseries')  
+    obs = list()   # Save all the observational datasets in one variable
+    for(v in 1:length(EvalProducts)){  
+       if(EvalProducts[[v]][[1]]$name == "EBAF"){
+        obs[[v]] = GetEBAF_SWdown_Global(variable=vars[[1]],filelist=EvalProducts[[v]],force_interval='monthly')    # 1° res -> 0.5°
+        ## Change resolution of "obs" from 1° to 0.5°
+        obsi =array(NA,dim=c(length(model$grid$lon),length(model$grid$lat),obs[[v]]$timing$tsteps))
+        grid.list = list(x= model$grid$lon, y=model$grid$lat)
+        for(t in 1:obs[[v]]$timing$tsteps){
+          obj  <- list( x=obs[[v]]$grid$lon, y=obs[[v]]$grid$lat, z=obs[[v]]$data[,,t]) 
+          obs_interp  = interp.surface.grid( obj, grid.list)
+          obsi[,,t]=obs_interp$z
+         }
+        obs[[v]]$data <- obsi
+        obs[[v]]$grid <- model$grid
+      }else if(EvalProducts[[v]][[1]]$name == "PRINCETON"){
+
+ 	obs[[v]] = GetPRINCETON_SWdown_monthly_Global(variable=vars[[1]],filelist=EvalProducts[[v]],force_interval='monthly')
+}
+
+    }
+    
+    # Add those analyses that are equally applicable to any variable to analysis list:
+    for(a in 1:length(genAnalysis)){
+
+      SingleAnalysisList = list(vindex=1, type=genAnalysis[a])
+      actr = actr + 1
+      # Create cluster:
+      cl = makeCluster(getOption('cl.cores', detectCores()))
+      OutInfo[[actr]] = DistributeGriddedAnalyses(Analysis=SingleAnalysisList,vars=vars,obs=obs,model=model,bench=bench,region=region,type=TypeE$type,cl)
+    }
+    stopCluster(cl) # Stop cluster
+
+} else if(EvalProducts[[1]][[1]]$variable == "LWdown"){
+    vars = GetVariableDetails(c('LWdown'))
+
+    model = GetModelOutput(vars[[1]],ModelOutputFiles)  
+
+    bench = GetBenchmarks(vars[[1]],BenchmarkFiles,nBench)
+
+
+    genAnalysis = c('Timeseries')  
+    obs = list()   # Save all the observational datasets in one variable
+    for(v in 1:length(EvalProducts)){  
+       if(EvalProducts[[v]][[1]]$name == "EBAF"){
+        obs[[v]] = GetEBAF_LWdown_Global(variable=vars[[1]],filelist=EvalProducts[[v]],force_interval='monthly')    # 1° res -> 0.5°
+        ## Change resolution of "obs" from 1° to 0.5°
+        obsi =array(NA,dim=c(length(model$grid$lon),length(model$grid$lat),obs[[v]]$timing$tsteps))
+        grid.list = list(x= model$grid$lon, y=model$grid$lat)
+        for(t in 1:obs[[v]]$timing$tsteps){
+          obj  <- list( x=obs[[v]]$grid$lon, y=obs[[v]]$grid$lat, z=obs[[v]]$data[,,t]) 
+          obs_interp  = interp.surface.grid( obj, grid.list)
+          obsi[,,t]=obs_interp$z
+         }
+        obs[[v]]$data <- obsi
+        obs[[v]]$grid <- model$grid
+      }else if(EvalProducts[[v]][[1]]$name == "PRINCETON"){
+
+ 	obs[[v]] = GetPRINCETON_LWdown_monthly_Global(variable=vars[[1]],filelist=EvalProducts[[v]],force_interval='monthly')
+}
+
+    }
+    
+    # Add those analyses that are equally applicable to any variable to analysis list:
+    for(a in 1:length(genAnalysis)){
+
+      SingleAnalysisList = list(vindex=1, type=genAnalysis[a])
+      actr = actr + 1
+      # Create cluster:
+      cl = makeCluster(getOption('cl.cores', detectCores()))
+      OutInfo[[actr]] = DistributeGriddedAnalyses(Analysis=SingleAnalysisList,vars=vars,obs=obs,model=model,bench=bench,region=region,type=TypeE$type,cl)
+    }
+    stopCluster(cl) # Stop cluster
+
+}  
 #-----------------------------------------------------------------------------------------------------------------------  
 }else if(TypeE$type=="MultiObsMap"){
   
   ### MAPS ###
-  vars = GetVariableDetails(c('Qle'))
+if(EvalProducts[[1]][[1]]$variable == "Qle"){ 
+ vars = GetVariableDetails(c('Qle'))
   models = GetModelOutput(vars[[1]],ModelOutputFiles)  
   bench = GetBenchmarks(vars[[1]],BenchmarkFiles,nBench)
   genAnalysis = c('TimeMean','TimeSD','TimeRMSE','TimeCor')
@@ -594,10 +799,136 @@ if((TypeE$type=="MultiVar") | (TypeE$type=="Single") | (TypeE$type=="Multiple"))
     OutInfo[[actr]] = DistributeGriddedAnalyses(Analysis=SingleAnalysisList,vars=vars,obs=obs,model=model,bench=bench,region=region,type=TypeE$type,cl)
   }
   stopCluster(cl) # Stop cluster  
+}else if(EvalProducts[[1]][[1]]$variable == "SWdown"){ ############################# SANAA start
+  ### MAPS ###
+vars = GetVariableDetails(c('SWdown'))
+
+  models = GetModelOutput(vars[[1]],ModelOutputFiles)
+  
+  bench = GetBenchmarks(vars[[1]],BenchmarkFiles,nBench)
+  genAnalysis = c('TimeMean','TimeSD','TimeRMSE','TimeCor')
+  obs = list()   # Save all the observational datasets in one variable
+  for(v in 1:length(EvalProducts)){  
+if(EvalProducts[[v]][[1]]$name == "EBAF"){
+obs[[v]] = GetEBAF_SWdown_Global(vars[[1]],EvalProducts[[v]],force_interval='monthly')
+
+}else if(EvalProducts[[v]][[1]]$name == "PRINCETON"){
+
+ 	obs[[v]] = GetPRINCETON_SWdown_monthly_Global(variable=vars[[1]],filelist=EvalProducts[[v]],force_interval='monthly')
+    }
 }
 
+  
+print("sofar so good sanaa")
+  # Regridding and finding matching time segment
+  model = list()
+  model = FindTimeSegment(models,obs)
+for(v in 1:length(EvalProducts)){ 
+    	if(EvalProducts[[v]][[1]]$name == "EBAF"){
+ ## Change resolution of "model" from 0.5° to 1°
+      modeli=array(NA,dim=c(length(obs[[v]]$grid$lon),length(obs[[v]]$grid$lat),model[[v]]$timing$tsteps))
+      grid.list<- list(x= obs[[v]]$grid$lon, y=obs[[v]]$grid$lat)
+      for(t in 1:model[[v]]$timing$tsteps){
+        obj<- list( x= model[[v]]$grid$lon, y=model[[v]]$grid$lat, z= model[[v]]$data[,,t]) 
+        model_interp=interp.surface.grid( obj, grid.list)
+        modeli[,,t]=model_interp$z
+      }
+      model[[v]]$data <- modeli
+      model[[v]]$grid <- obs[[v]]$grid   
+      ## Change resolution of "bench" from 0.5° to 1°  
+      if(bench$exist){
+        grid.list<- list(x= obs[[v]]$grid$lon, y=obs[[v]]$grid$lat)
+        for(b in 1:bench$howmany){
+          benchi=array(NA,dim=c(length(obs[[v]]$grid$lon),length(obs[[v]]$grid$lat),bench[[b]]$timing$tsteps))
+          for(t in 1:bench[[bench$index[[b]]]]$timing$tsteps){
+            obj<- list( x= bench[[b]]$grid$lon, y=bench[[b]]$grid$lat, z= bench[[b]]$data[,,t]) 
+            bench_interp=interp.surface.grid( obj, grid.list)
+            benchi[,,t]=bench_interp$z
+          }# end for(b in 1:bench$howmany)
+          bench[[b]]$data <- benchi
+          bench[[b]]$grid <- obs[[v]]$grid
+	}# end  for(b in 1:bench$howmany)
+	}# end if(bench$exist)
+}#end if(EvalProducts[[v]][[1]]$name == "EBAF")
+}#end for(v in 1:length(EvalProducts))
+  
+  # Add those analyses that are equally applicable to any variable to analysis list:
+  for(a in 1:length(genAnalysis)){
+    SingleAnalysisList = list(vindex=1, type=genAnalysis[a])
+    actr = actr + 1
+    # Create cluster:
+    cl = makeCluster(getOption('cl.cores', detectCores()))
+print("before distribute GriddedAnalyses")
+    OutInfo[[actr]] = DistributeGriddedAnalyses(Analysis=SingleAnalysisList,vars=vars,obs=obs,model=model,bench=bench,region=region,type=TypeE$type,cl)
+print("after distribute GriddedAnalyses")
+  } #end  for(a in 1:length(genAnalysis))
+  stopCluster(cl) # Stop cluster  
+}else if(EvalProducts[[1]][[1]]$variable == "LWdown"){ ############################# SANAA continue
+  ### MAPS ###
+vars = GetVariableDetails(c('LWdown'))
 
+  models = GetModelOutput(vars[[1]],ModelOutputFiles)
+  
+  bench = GetBenchmarks(vars[[1]],BenchmarkFiles,nBench)
+  genAnalysis = c('TimeMean','TimeSD','TimeRMSE','TimeCor')
+  obs = list()   # Save all the observational datasets in one variable
+  for(v in 1:length(EvalProducts)){  
+if(EvalProducts[[v]][[1]]$name == "EBAF"){
+obs[[v]] = GetEBAF_LWdown_Global(vars[[1]],EvalProducts[[v]],force_interval='monthly')
 
+}else if(EvalProducts[[v]][[1]]$name == "PRINCETON"){
+
+ 	obs[[v]] = GetPRINCETON_LWdown_monthly_Global(variable=vars[[1]],filelist=EvalProducts[[v]],force_interval='monthly')
+    }
+}
+
+  
+print("sofar so good sanaa")
+  # Regridding and finding matching time segment
+  model = list()
+  model = FindTimeSegment(models,obs)
+for(v in 1:length(EvalProducts)){ 
+    	if(EvalProducts[[v]][[1]]$name == "EBAF"){
+ ## Change resolution of "model" from 0.5° to 1°
+      modeli=array(NA,dim=c(length(obs[[v]]$grid$lon),length(obs[[v]]$grid$lat),model[[v]]$timing$tsteps))
+      grid.list<- list(x= obs[[v]]$grid$lon, y=obs[[v]]$grid$lat)
+      for(t in 1:model[[v]]$timing$tsteps){
+        obj<- list( x= model[[v]]$grid$lon, y=model[[v]]$grid$lat, z= model[[v]]$data[,,t]) 
+        model_interp=interp.surface.grid( obj, grid.list)
+        modeli[,,t]=model_interp$z
+      }
+      model[[v]]$data <- modeli
+      model[[v]]$grid <- obs[[v]]$grid   
+      ## Change resolution of "bench" from 0.5° to 1°  
+      if(bench$exist){
+        grid.list<- list(x= obs[[v]]$grid$lon, y=obs[[v]]$grid$lat)
+        for(b in 1:bench$howmany){
+          benchi=array(NA,dim=c(length(obs[[v]]$grid$lon),length(obs[[v]]$grid$lat),bench[[b]]$timing$tsteps))
+          for(t in 1:bench[[bench$index[[b]]]]$timing$tsteps){
+            obj<- list( x= bench[[b]]$grid$lon, y=bench[[b]]$grid$lat, z= bench[[b]]$data[,,t]) 
+            bench_interp=interp.surface.grid( obj, grid.list)
+            benchi[,,t]=bench_interp$z
+          }# end for(b in 1:bench$howmany)
+          bench[[b]]$data <- benchi
+          bench[[b]]$grid <- obs[[v]]$grid
+	}
+	}
+}
+}
+  
+  # Add those analyses that are equally applicable to any variable to analysis list:
+  for(a in 1:length(genAnalysis)){
+    SingleAnalysisList = list(vindex=1, type=genAnalysis[a])
+    actr = actr + 1
+    # Create cluster:
+    cl = makeCluster(getOption('cl.cores', detectCores()))
+print("before distribute GriddedAnalyses")
+    OutInfo[[actr]] = DistributeGriddedAnalyses(Analysis=SingleAnalysisList,vars=vars,obs=obs,model=model,bench=bench,region=region,type=TypeE$type,cl)
+print("after distribute GriddedAnalyses")
+  } 
+  stopCluster(cl) # Stop cluster  
+} 
+}
 
 if(TypeE$type!="MultiObsMap"){
   for(v in 1:actr){

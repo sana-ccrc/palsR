@@ -97,7 +97,17 @@ GetModelOutput = function(variable,filelist,forcegrid='no'){
 		
 		# Get data:
 		for(f in 1:length(filelist)){ # For each file sent by js
-			vdata[,,((f-1)*12+1) : ((f-1)*12+12)] = ncvar_get(mfid[[ fileorder[f] ]],variable[['Name']][exists$index])
+
+			vdata_tmp = ncvar_get(mfid[[ fileorder[f] ]],variable[['Name']][exists$index])
+	#vdata_tmp will change for MsTMIP data, since the grid's longitude will change from -180, 180 to 0, 360
+			name_part=substr(filelist[[f]][['name']],1,4)
+                        if(name_part=="CLAS" | name_part=="CLM4" | name_part=="SiB3" | name_part=="SiBC" | name_part=="SIBC"){
+                            vdata_tmp2=vdata_tmp
+                            vdata_tmp[1:360,,]=vdata_tmp2[361:720,,]
+                            vdata_tmp[361:720,,]=vdata_tmp2[1:360,,]
+                        }
+			vdata[,,((f-1)*12+1) : ((f-1)*12+12)] = vdata_tmp
+
 		}
 		# Create model timing list to reflect aggregated data:
 		modeltimingall = list(tstepsize=modeltiming[[1]]$tstepsize,tsteps=ntsteps,
@@ -141,6 +151,13 @@ GetModelOutput = function(variable,filelist,forcegrid='no'){
 					mfid = lapply(mfid, nc_close)
 					return(model)
 				}
+			# For MsTMIP data, grid's longitude interval is [-180,180] instead of [0,360]. vdata_tmp must be modified for all MsTMIP model outputs
+                        	name_part=substr(filelist[[f]][['name']],1,4)
+                           	if(name_part=="CLAS" | name_part=="CLM4" | name_part=="SiB3" | name_part=="SiBC" | name_part=="SIBC"){
+                           		vdata_tmp2=vdata_tmp
+                            		vdata_tmp[1:360,,]=vdata_tmp2[361:720,,]
+                            		vdata_tmp[361:720,,]=vdata_tmp2[1:360,,]
+                            	}
 
 				vdata[,,((f-1)*tsteps1+1) : ((f-1)*tsteps1+tsteps1)] = vdata_tmp
 			}
@@ -160,12 +177,21 @@ GetModelOutput = function(variable,filelist,forcegrid='no'){
 	mfid = lapply(mfid, nc_close)
 	
 	# Apply any units changes:
-	vdata = vdata*units$multiplier + units$addition
+	#vdata = vdata*units$multiplier + units$addition #Shows an error with MsTMIP data
 	
 	# Assess nature of grid here
 	
 	# If not equal to requested grid structure (if forcegrid != 'no'), reshape data here
 	
+	#convert the grid's longitude from -180, 180 to 0, 360 for MsTMIP data 
+        #Make appropriate changes to the data
+        for(k in 1:length(filelist)){
+        name_part=substr(filelist[[k]][['name']],1,4)
+        	if(name_part=="CLAS" | name_part=="CLM4" | name_part=="SiB3" | name_part=="SiBC" | name_part=="SIBC") {
+			grid$lon=grid$lon + 180
+		}
+ 	}	
+
 	# Create list to return from function:	
 	model=list(data=vdata,timing = modeltimingall,name=filelist[[1]]$name,grid=grid,
 		err=FALSE,errtext=errtext)

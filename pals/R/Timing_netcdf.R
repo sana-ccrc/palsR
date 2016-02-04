@@ -109,10 +109,18 @@ GetTimeUnits = function(fid,timevarname){
 			sdoy = as.numeric(substr(units$value,23,24))
 			units = 'seconds'
 		}else if(substr(units$value,1,4)=='days'){ # time units are days
-			syear = as.numeric(substr(units$value,11,14))
-			smonth = as.numeric(substr(units$value,16,17))
-			sdoy = as.numeric(substr(units$value,19,20))
-			units = 'days'
+			syear = as.numeric(substr(units$value,12,15))
+			smonth = as.numeric(substr(units$value,17,18))
+			sdoy = as.numeric(substr(units$value,20,21))
+            	# now we have to add the number of days to syear to know the actual year
+                        sdate=as.Date(substr(units$value,12,21))
+            	# The number of days that should be added to sdate
+                        ndays=ncvar_get(fid,timevarname,start=1,count=1) 
+	        #The actual start date
+                        asdate=sdate+ndays 
+                        asyear=as.numeric(substr(asdate,1,4)) 
+		#The actual start year
+                        syear=asyear			units = 'days'
 		}else{
 			errtext = paste('T1: Unable to interpret time units in', stripFilename(fid$filename))
 			tunits = list(err=TRUE,errtext=errtext)

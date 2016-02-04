@@ -1,0 +1,57 @@
+{
+   "_id" : "mVJDHsjHSJWHK",
+   "files" : [
+       {
+           "type" : "ModelOutput",
+           "path" : "/srv/ccrc/data42/z5043321/DATA/CABLE_OUTPUT/cable_out_2005.nc",
+           "mimetype" : "application/x-netcdf",
+	   "name" : "CABLEOutput-2005",
+	   "variable" : "SWdown"
+       },
+	 {
+           "type" : "ModelOutput",
+           "path" : "/srv/ccrc/data42/z5043321/DATA/CABLE_OUTPUT/cable_out_2006.nc",
+           "mimetype" : "application/x-netcdf",
+	   "name" : "CABLEOutput-2006",
+	   "variable" : "SWdown"
+       },
+{   
+           "type" : "DataSet", 
+           "path" : "/srv/ccrc/data42/z5043321/DATA/CERES/EBAF/CERES_EBAF-Surface_Ed2.8_Subset_2005.nc",
+           "mimetype" : "application/x-netcdf",
+	       "name" : "EBAF",
+	   "variable" : "SWdown"
+       },
+       {   
+           "type" : "DataSet", 
+           "path" : "/srv/ccrc/data42/z5043321/DATA/CERES/EBAF/CERES_EBAF-Surface_Ed2.8_Subset_2006.nc",
+           "mimetype" : "application/x-netcdf",
+	       "name" : "EBAF",
+	   "variable" : "SWdown"
+       },
+       {   
+           "type" : "Benchmark", 
+           "path" : "/srv/ccrc/data42/z5043321/DATA/MsTMIP/CLM4_BG1_Monthly/CLM4_BG1_Monthly_SWdown_2005.nc4",
+           "mimetype" : "application/x-netcdf",
+		   "number" : "1",
+	       "name" : "CLM4-bench-2005",
+	   "variable" : "SWdown"
+       },
+       {   
+           "type" : "Benchmark", 
+           "path" : "/srv/ccrc/data42/z5043321/DATA/MsTMIP/CLM4_BG1_Monthly/CLM4_BG1_Monthly_SWdown_2006.nc4",
+           "mimetype" : "application/x-netcdf",
+		   "number" : "2",
+	       "name" : "CLM4-bench-2005",
+	   "variable" : "SWdown"
+       },
+ {   
+           "type" : "Benchmark", 
+           "path" : "/srv/ccrc/data42/z5043321/DATA/MsTMIP/SIBCASA_RG1_Monthly/SiBCASA_RG1_Monthly_SWdown_2005.nc4",
+           "mimetype" : "application/x-netcdf",
+		   "number" : "3",
+	       "name" : "SiBCASA-bench-2005",
+	   "variable" : "SWdown"
+       }
+   ]
+}

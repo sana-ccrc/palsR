@@ -1,0 +1,33 @@
+{
+   "_id" : "mVJDHsjHSJWHK",
+   "files" : [
+       {
+           "type" : "ModelOutput",
+           "path" : "/srv/ccrc/data42/z5043321/DATA/CABLE_OUTPUT/cable_out_2005.nc",
+           "mimetype" : "application/x-netcdf",
+	   "name" : "CABLEOutput-2005",
+	   "variable" : "LWdown"
+       },
+	 {
+           "type" : "ModelOutput",
+           "path" : "/srv/ccrc/data42/z5043321/DATA/CABLE_OUTPUT/cable_out_2006.nc",
+           "mimetype" : "application/x-netcdf",
+	   "name" : "CABLEOutput-2006",
+	   "variable" : "LWdown"
+       },
+{   
+           "type" : "DataSet", 
+           "path" : "/srv/ccrc/data42/z5043321/DATA/CERES/EBAF/CERES_EBAF-Surface_Ed2.8_LWdown_Subset_2005.nc",
+           "mimetype" : "application/x-netcdf",
+	       "name" : "EBAF",
+	   "variable" : "LWdown"
+       },
+       {   
+           "type" : "DataSet", 
+           "path" : "/srv/ccrc/data42/z5043321/DATA/CERES/EBAF/CERES_EBAF-Surface_Ed2.8_LWdown_Subset_2006.nc",
+           "mimetype" : "application/x-netcdf",
+	       "name" : "EBAF",
+	   "variable" : "LWdown"
+       }
+   ]
+}
